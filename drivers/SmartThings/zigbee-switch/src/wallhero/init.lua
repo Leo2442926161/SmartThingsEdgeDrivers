@@ -1,39 +1,21 @@
--- Copyright 2023 SmartThings
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---     http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Copyright 2025 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
 
 local capabilities = require "st.capabilities"
 local log = require "log"
 local stDevice = require "st.device"
 local zcl_clusters = require "st.zigbee.zcl.clusters"
+local cluster_base = require "st.zigbee.cluster_base"
+local data_types = require "st.zigbee.data_types"
+local configurations = require "configurations"
 
 local Scenes = zcl_clusters.Scenes
-
-local FINGERPRINTS = {
-  { mfr = "WALL HERO", model = "ACL-401S4I", switches = 4, buttons = 0 },
-  { mfr = "WALL HERO", model = "ACL-401S8I", switches = 4, buttons = 4 }
-}
-
-local function can_handle_wallhero_switch(opts, driver, device, ...)
-  for _, fingerprint in ipairs(FINGERPRINTS) do
-    if device:get_manufacturer() == fingerprint.mfr and device:get_model() == fingerprint.model then
-      return true
-    end
-  end
-  return false
-end
+local PRIVATE_CLUSTER_ID = 0x0006
+local PRIVATE_ATTRIBUTE_ID = 0x6000
+local MFG_CODE = 0x1235
 
 local function get_children_info(device)
+  local FINGERPRINTS = require "wallhero.fingerprints"
   for _, fingerprint in ipairs(FINGERPRINTS) do
     if device:get_model() == fingerprint.model then
       return fingerprint.switches, fingerprint.buttons
@@ -47,7 +29,7 @@ end
 
 local function create_child_devices(driver, device)
   local switch_amount, button_amount = get_children_info(device)
-  local base_name = device.label:sub(1, device.label:find(" "))
+  local base_name = string.sub(device.label, 0, -2)
   -- Create Switch 2-4
   for i = 2, switch_amount, 1 do
     if find_child(device, i) == nil then
@@ -90,6 +72,22 @@ local function device_added(driver, device)
   end
 end
 
+local function device_info_changed(driver, device, event, args)
+  local preferences = device.preferences
+  local old_preferences = args.old_st_store.preferences
+  local value_map = { [true] = 0x00,[false] = 0x01 }
+  if preferences ~= nil then
+    local id = "stse.turnOffIndicatorLight"
+    local old_value = old_preferences[id]
+    local value = preferences[id]
+    if value ~= nil and value ~= old_value  then
+      value = value_map[value]
+      local message = cluster_base.write_manufacturer_specific_attribute(device, PRIVATE_CLUSTER_ID, PRIVATE_ATTRIBUTE_ID, MFG_CODE, data_types.Uint8, value)
+      device:send(message)
+    end
+  end
+end
+
 local function device_init(driver, device, event)
   device:set_find_child(find_child)
 end
@@ -104,7 +102,8 @@ local wallheroswitch = {
   NAME = "Zigbee Wall Hero Switch",
   lifecycle_handlers = {
     added = device_added,
-    init = device_init
+    init = configurations.reconfig_wrapper(device_init),
+    infoChanged = device_info_changed
   },
   zigbee_handlers = {
     cluster = {
@@ -113,7 +112,7 @@ local wallheroswitch = {
       }
     }
   },
-  can_handle = can_handle_wallhero_switch
+  can_handle = require("wallhero.can_handle"),
 }
 
 return wallheroswitch

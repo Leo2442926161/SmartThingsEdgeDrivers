@@ -1,16 +1,6 @@
--- Copyright 2022 SmartThings
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---     http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Copyright 2022 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
+
 
 local device_management = require "st.zigbee.device_management"
 local clusters = require "st.zigbee.zcl.clusters"
@@ -30,8 +20,6 @@ local function handle_lock_state(driver, device, value, zb_rx)
     device:emit_event(Lock.lock.locked())
   elseif value.value == DoorLock.attributes.LockState.UNLOCKED then
     device:emit_event(Lock.lock.unlocked())
-  else
-    device:emit_event(Lock.lock.unknown())
   end
 end
 
@@ -51,13 +39,23 @@ local function unlock_cmd_handler(driver, device, command)
           "\x10\x04\x31\x32\x33\x35"))
 end
 
+local function lock_cmd_handler(driver, device, command)
+  -- do nothing in lock command handler
+end
+
 local refresh = function(driver, device, cmd)
   -- do nothing in refresh capability handler
 end
 
+local function emit_event_if_latest_state_missing(device, component, capability, attribute_name, value)
+  if device:get_latest_state(component, capability.ID, attribute_name) == nil then
+    device:emit_event(value)
+  end
+end
+
 local device_added = function(self, device)
   lock_utils.populate_state_from_data(device)
-  device:emit_event(capabilities.lock.lock.unlocked())
+  emit_event_if_latest_state_missing(device, "main", capabilities.lock, capabilities.lock.lock.NAME, capabilities.lock.lock.unlocked())
   device:emit_event(capabilities.battery.battery(100))
 end
 
@@ -95,7 +93,8 @@ local samsung_sds_driver = {
       [capabilities.refresh.commands.refresh.NAME] = refresh
     },
     [capabilities.lock.ID] = {
-      [capabilities.lock.commands.unlock.NAME] = unlock_cmd_handler
+      [capabilities.lock.commands.unlock.NAME] = unlock_cmd_handler,
+      [capabilities.lock.commands.lock.NAME] = lock_cmd_handler
     }
   },
   lifecycle_handlers = {
@@ -103,9 +102,7 @@ local samsung_sds_driver = {
     added = device_added,
     init = device_init
   },
-  can_handle = function(opts, driver, device, ...)
-    return device:get_manufacturer() == "SAMSUNG SDS"
-  end
+  can_handle = require("samsungsds.can_handle"),
 }
 
 return samsung_sds_driver

@@ -1,0 +1,164 @@
+-- Copyright © 2022 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
+
+local test = require "integration_test"
+local t_utils = require "integration_test.utils"
+
+local clusters = require "st.matter.clusters"
+
+-- This is to make sure that any device with the "Aggregator" device type
+-- is not profile switched from a bridge, even if there are other endpoints
+-- present. This is due to an issue on the hub where sometimes the endpoints
+-- are not filtered out properly.
+local mock_bridge = test.mock_device.build_test_matter_device({
+  profile = t_utils.get_profile_definition("matter-bridge.yml"),
+  manufacturer_info = {
+    vendor_id = 0x0000,
+    product_id = 0x0000,
+  },
+  endpoints = {
+    {
+      endpoint_id = 0,
+      clusters = {
+        {cluster_id = clusters.Basic.ID, cluster_type = "SERVER"},
+      },
+      device_types = {
+        {device_type_id = 0x000E, device_type_revision = 1} -- Aggregator
+      }
+    },
+    {
+      endpoint_id = 1,
+      clusters = {
+        {
+          cluster_id = clusters.OnOff.ID,
+          cluster_type = "SERVER",
+          cluster_revision = 1,
+          feature_map = 0, --u32 bitmap
+        },
+        {cluster_id = clusters.LevelControl.ID, cluster_type = "SERVER"}
+      },
+      device_types = {
+        {device_type_id = 0x0100, device_type_revision = 1} -- On/Off Light
+      }
+    },
+    {
+      endpoint_id = 2,
+      clusters = {
+        {
+          cluster_id = clusters.OnOff.ID,
+          cluster_type = "SERVER",
+          cluster_revision = 1,
+          feature_map = 0, --u32 bitmap
+        },
+        {cluster_id = clusters.LevelControl.ID, cluster_type = "SERVER"}
+      },
+      device_types = {
+        {device_type_id = 0x0100, device_type_revision = 1} -- On/Off Light
+      }
+    }
+  }
+})
+
+local mock_basic_bridge = test.mock_device.build_test_matter_device({
+  profile = t_utils.get_profile_definition("matter-bridge.yml"),
+  matter_version = { hardware = 1, software = 1 },
+  manufacturer_info = {
+    vendor_id = 0x0000,
+    product_id = 0x0000,
+  },
+  endpoints = {
+    {
+      endpoint_id = 0,
+      clusters = {
+        { cluster_id = clusters.Basic.ID, cluster_type = "SERVER" },
+      },
+      device_types = {
+        { device_type_id = 0x000E, device_type_revision = 1 } -- Aggregator
+      }
+    }
+  }
+})
+
+local function test_init_mock_bridge()
+  test.mock_device.add_test_device(mock_bridge)
+  test.socket.device_lifecycle:__queue_receive({ mock_bridge.id, "added" })
+  test.socket.device_lifecycle:__queue_receive({ mock_bridge.id, "init" })
+  test.socket.device_lifecycle:__queue_receive({ mock_bridge.id, "doConfigure" })
+  mock_bridge:expect_metadata_update({ provisioning_state = "PROVISIONED" })
+end
+
+local function test_init_mock_basic_bridge()
+  test.mock_device.add_test_device(mock_basic_bridge)
+  test.socket.device_lifecycle:__queue_receive({ mock_basic_bridge.id, "added" })
+  test.socket.device_lifecycle:__queue_receive({ mock_basic_bridge.id, "init" })
+  test.socket.device_lifecycle:__queue_receive({ mock_basic_bridge.id, "doConfigure" })
+  mock_basic_bridge:expect_metadata_update({ provisioning_state = "PROVISIONED" })
+end
+
+test.register_coroutine_test(
+  "Profile should not change for devices with aggregator device type (bridges)",
+  function()
+  end,
+  {
+    test_init = test_init_mock_bridge,
+    min_api_version = 17
+  }
+)
+
+test.register_coroutine_test(
+  "Camera reprofiling should happen after software version change when camera endpoint appears",
+  function()
+    local updated_endpoints = {
+      {
+        endpoint_id = 0,
+        clusters = {
+          { cluster_id = clusters.Basic.ID, cluster_type = "SERVER" },
+        },
+        device_types = {
+          { device_type_id = 0x000E, device_type_revision = 1 } -- Aggregator
+        }
+      },
+      {
+        endpoint_id = 1,
+        clusters = {
+          {
+            cluster_id = clusters.CameraAvStreamManagement.ID,
+            feature_map = clusters.CameraAvStreamManagement.types.Feature.VIDEO,
+            cluster_type = "SERVER"
+          },
+          { cluster_id = clusters.PushAvStreamTransport.ID, cluster_type = "SERVER" }
+        },
+        device_types = {
+          { device_type_id = 0x0142, device_type_revision = 1 } -- Camera
+        }
+      }
+    }
+
+    test.socket.device_lifecycle:__queue_receive(
+      mock_basic_bridge:generate_info_changed({
+        matter_version = { hardware = 1, software = 2 },
+        endpoints = updated_endpoints
+      })
+    )
+
+    mock_basic_bridge:expect_metadata_update({
+      profile = "camera",
+      optional_component_capabilities = {
+        {
+          "main",
+          {
+            "videoCapture2",
+            "cameraViewportSettings",
+            "videoStreamSettings"
+          }
+        }
+      }
+    })
+  end,
+  {
+    test_init = test_init_mock_basic_bridge,
+    min_api_version = 17
+  }
+)
+
+test.run_registered_tests()

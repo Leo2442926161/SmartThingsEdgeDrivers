@@ -1,16 +1,6 @@
--- Copyright 2022 SmartThings
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---     http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Copyright 2022 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
+
 
 local capabilities = require "st.capabilities"
 local cc = require "st.zwave.CommandClass"
@@ -27,14 +17,9 @@ local Association = (require "st.zwave.CommandClass.Association")({version=1})
 
 local LockCodesDefaults = require "st.zwave.defaults.lockCodes"
 
-local SCHLAGE_MFR = 0x003B
 local SCHLAGE_LOCK_CODE_LENGTH_PARAM = {number = 16, size = 1}
 
 local DEFAULT_COMMANDS_DELAY = 4.2 -- seconds
-
-local function can_handle_schlage_lock(opts, self, device, cmd, ...)
-  return device.zwave_manufacturer_id == SCHLAGE_MFR
-end
 
 local function set_code_length(self, device, cmd)
   local length = cmd.args.length
@@ -78,7 +63,7 @@ local function set_code(self, device, cmd)
       )
     end
     local current_code_length = device:get_latest_state("main", capabilities.lockCodes.ID, capabilities.lockCodes.codeLength.NAME)
-    if current_code_length ~= nil then
+    if current_code_length == nil then
       device:send(Configuration:Get({parameter_number = SCHLAGE_LOCK_CODE_LENGTH_PARAM.number}))
       device.thread:call_with_delay(DEFAULT_COMMANDS_DELAY, send_set_user_code)
     else
@@ -119,7 +104,7 @@ local function is_user_code_report_mfr_specific(device, cmd)
   local code_id = cmd.args.user_identifier
 
   if reported_user_id_status == user_id_status.ENABLED_GRANT_ACCESS or -- OCCUPIED in UserCodeV1
-      (user_code == user_id_status.STATUS_NOT_AVAILABLE and user_code ~= nil) then
+      (reported_user_id_status == user_id_status.STATUS_NOT_AVAILABLE and user_code ~= nil) then
     local code_state = device:get_field(constants.CODE_STATE)
     return user_code == "**********" or user_code == nil or (code_state ~= nil and code_state["setName"..cmd.args.user_identifier] ~= nil)
   else
@@ -136,7 +121,7 @@ local function user_code_report_handler(self, device, cmd)
     local event
 
     if reported_user_id_status == user_id_status.ENABLED_GRANT_ACCESS or -- OCCUPIED in UserCodeV1
-        (user_code == user_id_status.STATUS_NOT_AVAILABLE and user_code ~= nil) then
+        (reported_user_id_status == user_id_status.STATUS_NOT_AVAILABLE and user_code ~= nil) then
       local code_name = LockCodesDefaults.get_code_name(device, code_id)
       local change_type = LockCodesDefaults.get_change_type(device, code_id)
       event = capabilities.lockCodes.codeChanged(code_id..""..change_type, { state_change = true })
@@ -187,7 +172,7 @@ local schlage_lock = {
     doConfigure = do_configure,
   },
   NAME = "Schlage Lock",
-  can_handle = can_handle_schlage_lock,
+  can_handle = require("schlage-lock.can_handle"),
 }
 
 return schlage_lock

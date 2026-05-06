@@ -1,3 +1,6 @@
+-- Copyright 2025 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
+
 local capabilities = require "st.capabilities"
 local zcl_commands = require "st.zigbee.zcl.global_commands"
 local clusters = require "st.zigbee.zcl.clusters"
@@ -16,10 +19,6 @@ local FREQUENCY_ATTRIBUTE_ID = 0x0102
 
 local MOTION_DETECTED_UINT32 = 65536
 
-local FINGERPRINTS = {
-  { mfr = "LUMI", model = "lumi.motion.agl02" },
-  { mfr = "LUMI", model = "lumi.motion.agl04" }
-}
 
 local CONFIGURATIONS = {
   {
@@ -32,14 +31,6 @@ local CONFIGURATIONS = {
   }
 }
 
-local is_aqara_products = function(opts, driver, device)
-  for _, fingerprint in ipairs(FINGERPRINTS) do
-    if device:get_manufacturer() == fingerprint.mfr and device:get_model() == fingerprint.model then
-      return true
-    end
-  end
-  return false
-end
 
 local function motion_illuminance_attr_handler(driver, device, value, zb_rx)
   -- The low 16 bits for Illuminance
@@ -62,7 +53,7 @@ local function write_attr_res_handler(driver, device, zb_rx)
     -- for unoccupied timer
     device:set_field(aqara_utils.PREF_FREQUENCY_KEY, value, { persist = true })
     -- update ui
-    device:emit_event(detectionFrequency.detectionFrequency(value))
+    device:emit_event(detectionFrequency.detectionFrequency(value, {visibility = {displayed = false}}))
   end
 end
 
@@ -79,9 +70,12 @@ end
 local function added_handler(self, device)
   device:emit_event(capabilities.motionSensor.motion.inactive())
   device:emit_event(capabilities.illuminanceMeasurement.illuminance(0))
-  device:emit_event(detectionFrequency.detectionFrequency(aqara_utils.PREF_FREQUENCY_VALUE_DEFAULT))
+  device:emit_event(detectionFrequency.detectionFrequency(aqara_utils.PREF_FREQUENCY_VALUE_DEFAULT, {visibility = {displayed = false}}))
   device:emit_event(capabilities.battery.battery(100))
+end
 
+local function do_configure(self, device)
+  device:configure()
   device:send(cluster_base.write_manufacturer_specific_attribute(device, aqara_utils.PRIVATE_CLUSTER_ID,
     aqara_utils.PRIVATE_ATTRIBUTE_ID,
     aqara_utils.MFG_CODE, data_types.Uint8, 1))
@@ -92,7 +86,6 @@ local function device_init(driver, device)
 
   for _, attribute in ipairs(CONFIGURATIONS) do
     device:add_configured_attribute(attribute)
-    device:add_monitored_attribute(attribute)
   end
 end
 
@@ -100,7 +93,8 @@ local aqara_motion_handler = {
   NAME = "Aqara Motion Handler",
   lifecycle_handlers = {
     init = device_init,
-    added = added_handler
+    added = added_handler,
+    doConfigure = do_configure
   },
   capability_handlers = {
     [detectionFrequency.ID] = {
@@ -119,10 +113,8 @@ local aqara_motion_handler = {
       }
     }
   },
-  sub_drivers = {
-    require("aqara.high-precision-motion")
-  },
-  can_handle = is_aqara_products
+  sub_drivers = require("aqara.sub_drivers"),
+  can_handle = require("aqara.can_handle"),
 }
 
 return aqara_motion_handler

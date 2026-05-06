@@ -1,16 +1,5 @@
--- Copyright 2022 SmartThings
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---     http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Copyright 2022 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
 
 local capabilities = require "st.capabilities"
 --- @type st.zwave.CommandClass
@@ -103,6 +92,8 @@ end
 
 local init_handler = function(driver, device, event)
   populate_state_from_data(device)
+  -- temp fix before this can be changed from being persisted in memory
+  device:set_field(constants.CODE_STATE, nil, { persist = true })
 end
 
 local do_refresh = function(self, device)
@@ -180,13 +171,8 @@ local driver_template = {
       [Time.GET] = time_get_handler -- used by DanaLock
     }
   },
-  sub_drivers = {
-    require("zwave-alarm-v1-lock"),
-    require("schlage-lock"),
-    require("samsung-lock"),
-    require("keywe-lock"),
-    require("apiv6_bugfix"),
-  }
+  sub_drivers = require("sub_drivers"),
+  shared_device_thread_enabled = true,
 }
 
 defaults.register_for_default_handlers(driver_template, driver_template.supported_capabilities)

@@ -1,4 +1,9 @@
 zigbeeManufacturer:
+  - id: "LUMI/lumi.motion.ac02"
+    deviceLabel: Aqara Motion Sensor P1
+    manufacturer: LUMI
+    model: lumi.motion.ac02
+    deviceProfileName: motion-illuminance-battery-aqara
   - id: "LUMI/lumi.motion.agl02"
     deviceLabel: Aqara Motion Sensor T1
     manufacturer: LUMI
@@ -19,6 +24,11 @@ zigbeeManufacturer:
     manufacturer: eWeLink
     model: MSO1
     deviceProfileName: motion-battery
+  - id: eWeLink/SNZB-03P
+    deviceLabel: Zigbee Motion Sensor
+    manufacturer: eWeLink
+    model: SNZB-03P
+    deviceProfileName: motion
   - id: "ORVIBO/895a2d80097f4ae2b2d40500d5e0"
     deviceLabel: Orvibo Motion Sensor
     manufacturer: ORVIBO
@@ -154,15 +164,20 @@ zigbeeManufacturer:
     model: VMS_ADUROLIGHT
     deviceProfileName: motion-battery
   - id: frientA/S/140
-    deviceLabel: frient Motion Sensor
+    deviceLabel: frient Motion Sensor Pro
     manufacturer: frient A/S
     model: MOSZB-140
-    deviceProfileName: motion-temp-battery
+    deviceProfileName: frient-motion-temp-illuminance-tamper-battery
   - id: frientA/S/141
     deviceLabel: frient Motion Sensor
     manufacturer: frient A/S
     model: MOSZB-141
-    deviceProfileName: motion-battery
+    deviceProfileName: frient-motion-battery
+  - id: frientA/S/153
+    deviceLabel: frient Motion Sensor 2 Pet
+    manufacturer: frient A/S
+    model: MOSZB-153
+    deviceProfileName: frient-motion-temp-illuminance-battery
   - id: Compacta/ZBMS3-1
     deviceLabel: Smartenit Motion Sensor
     manufacturer: Compacta
@@ -189,6 +204,16 @@ zigbeeManufacturer:
     manufacturer: THIRDREALITY
     model: 3RMS16BZ
     deviceProfileName: motion-battery
+  - id: "sengled/E1M-G7H"
+    deviceLabel: Sengled Motion Sensor
+    manufacturer: sengled
+    model: E1M-G7H
+    deviceProfileName: motion-battery
+  - id: "MultIR/MIR-IR100"
+    deviceLabel: MultiIR Motion Detector MIR-IR100
+    manufacturer: MultIR
+    model: MIR-IR100
+    deviceProfileName: motion-battery-illuminance-sensitivity-frequency-no-fw-update
 zigbeeGeneric:
   - id: kickstarter/motion/1
     deviceLabel: SmartThings Motion Sensor

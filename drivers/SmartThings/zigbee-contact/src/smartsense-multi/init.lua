@@ -1,16 +1,5 @@
--- Copyright 2022 SmartThings
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---     http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Copyright 2022 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
 
 local capabilities = require "st.capabilities"
 local multi_utils = require "multi-sensor/multi_utils"
@@ -24,22 +13,6 @@ local SMARTSENSE_MULTI_ACC_CMD = 0x00
 local SMARTSENSE_MULTI_XYZ_CMD = 0x05
 local SMARTSENSE_MULTI_STATUS_CMD = 0x07
 local SMARTSENSE_MULTI_STATUS_REPORT_CMD = 0x09
-local SMARTSENSE_PROFILE_ID = 0xFC01
-
-local SMARTSENSE_MULTI_FINGERPRINTS = {
-  { mfr = "SmartThings", model = "PGC313" },
-  { mfr = "SmartThings", model = "PGC313EU" }
-}
-
-local function can_handle(opts, driver, device, ...)
-  for _, fingerprint in ipairs(SMARTSENSE_MULTI_FINGERPRINTS) do
-    if device:get_manufacturer() == fingerprint.mfr and device:get_model() == fingerprint.model then
-      return true
-    end
-  end
-  if device.zigbee_endpoints[1].profileId == SMARTSENSE_PROFILE_ID then return true end
-  return false
-end
 
 local function acceleration_handler(driver, device, zb_rx)
   -- This is a custom cluster command for the kickstarter multi.
@@ -90,6 +63,13 @@ local function temperature_handler(device, temperature)
   -- Value is in tenths of a degree so divide by 10.
   -- tempEventVal = ((float)attrVal.int16Val) / 10.0 + tempOffsetVal
   -- tempOffset is handled outside of the driver
+
+  -- if temperature > 32767, this represents a negative number in int16 data types
+  -- Apply 'two's complement' to temperature value
+  if temperature > 32767 then
+    temperature = temperature - 65536
+  end
+
   local tempDivisor = 10.0
   local tempCelsius = temperature / tempDivisor
   device:emit_event(capabilities.temperatureMeasurement.temperature({value = tempCelsius, unit = "C"}))
@@ -139,7 +119,19 @@ local function xyz_handler(driver, device, zb_rx)
   local x = multi_utils.convert_to_signedInt16(zb_rx.body.zcl_body.body_bytes:byte(1), zb_rx.body.zcl_body.body_bytes:byte(2))
   local y = multi_utils.convert_to_signedInt16(zb_rx.body.zcl_body.body_bytes:byte(3), zb_rx.body.zcl_body.body_bytes:byte(4))
   local z = multi_utils.convert_to_signedInt16(zb_rx.body.zcl_body.body_bytes:byte(5), zb_rx.body.zcl_body.body_bytes:byte(6))
-  multi_utils.handle_three_axis_report(device, x, y, z)
+  device:emit_event(capabilities.threeAxis.threeAxis({value = {x, y, z}}))
+  if device.preferences["certifiedpreferences.garageSensor"] then
+    -- The sensor is mounted on the garage door vertically. Unlike the newer sensors, the z-axis is parallel to the ground
+    -- when the door is closed and perpendicular to the ground when the door is open. This is why we are using custom handling
+    -- instead of multi_utils.handle_three_axis_report. The values here were the same used in the original Groovy DTH
+    -- and in the protocol handler.
+    local abs_z = math.abs(z)
+    if abs_z > 825 then
+      device:emit_event(capabilities.contactSensor.contact.open())
+    elseif abs_z < 100 then
+      device:emit_event(capabilities.contactSensor.contact.closed())
+    end
+  end
 end
 
 local smartsense_multi = {
@@ -162,7 +154,7 @@ local smartsense_multi = {
       }
     }
   },
-  can_handle = can_handle
+  can_handle = require("smartsense-multi.can_handle"),
 }
 
 return smartsense_multi

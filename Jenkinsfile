@@ -28,13 +28,15 @@ pipeline {
   agent {
     docker {
       image 'python:3.10'
-      label 'production'
+      label  "${params.NODE_LABEL ?: 'production'}"
       args '--entrypoint= -u 0:0'
     }
   }
   environment {
     BRANCH = getEnvName()
     CHANGED_DRIVERS = getChangedDrivers()
+    ENVIRONMENT = "${env.NODE_LABEL.toUpperCase()}"
+    FAILURE_FILE = "failures.log"
   }
   stages {
     stage('requirements') {
@@ -43,6 +45,7 @@ pipeline {
           currentBuild.displayName = "#" + currentBuild.number + " " + env.BRANCH
           currentBuild.description = "Drivers changed: " + env.CHANGED_DRIVERS
         }
+        sh 'git config --global --add safe.directory "*"'
         sh 'git clean -xfd'
         sh 'apt-get update'
         sh 'apt-get install zip -y'
@@ -50,17 +53,15 @@ pipeline {
       }
     }
     stage('update') {
-      matrix {
-        axes {
-          axis {
-            name 'ENVIRONMENT'
-            values 'DEV', 'STAGING', 'ACCEPTANCE', 'PRODUCTION'
-          }
-        }
-        stages {
-          stage('environment_update') {
-            steps {
-              sh 'python3 tools/deploy.py'
+      stages {
+        stage('environment_update') {
+          steps {
+            sh 'python3 tools/deploy.py'
+            script {
+              if (fileExists(env.FAILURE_FILE)) {
+                currentBuild.description += readFile(env.FAILURE_FILE)
+                currentBuild.result = 'UNSTABLE'
+              }
             }
           }
         }
@@ -68,4 +69,3 @@ pipeline {
     }
   }
 }
-

@@ -1,21 +1,13 @@
--- Copyright 2022 SmartThings
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---     http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Copyright 2022 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
 
 local test = require "integration_test"
 local zigbee_test_utils = require "integration_test.zigbee_test_utils"
 local t_utils = require "integration_test.utils"
 local capabilities = require "st.capabilities"
+local clusters = require "st.zigbee.zcl.clusters"
+
+local IASZone = clusters.IASZone
 
 local SMARTSENSE_PROFILE_ID = 0xFC01
 local MFG_CODE = 0x110A
@@ -122,7 +114,10 @@ test.register_coroutine_test(
       })
       test.socket.capability:__set_channel_ordering("relaxed")
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.active()))
-    end
+    end,
+    {
+       min_api_version = 17
+    }
 )
 
 test.register_coroutine_test(
@@ -137,7 +132,10 @@ test.register_coroutine_test(
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.active()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.open()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-    end
+    end,
+    {
+       min_api_version = 17
+    }
 )
 
 test.register_coroutine_test(
@@ -152,7 +150,10 @@ test.register_coroutine_test(
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.open()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-    end
+    end,
+    {
+       min_api_version = 17
+    }
 )
 
 test.register_coroutine_test(
@@ -167,7 +168,10 @@ test.register_coroutine_test(
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.active()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-    end
+    end,
+    {
+       min_api_version = 17
+    }
 )
 
 test.register_coroutine_test(
@@ -182,7 +186,10 @@ test.register_coroutine_test(
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-  end
+  end,
+  {
+     min_api_version = 17
+  }
 )
 
 test.register_coroutine_test(
@@ -197,7 +204,10 @@ test.register_coroutine_test(
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-  end
+  end,
+  {
+     min_api_version = 17
+  }
 )
 
 test.register_coroutine_test(
@@ -212,7 +222,10 @@ test.register_coroutine_test(
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.active()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.open()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-  end
+  end,
+  {
+     min_api_version = 17
+  }
 )
 
 test.register_coroutine_test(
@@ -227,7 +240,10 @@ test.register_coroutine_test(
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.open()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-  end
+  end,
+  {
+     min_api_version = 17
+  }
 )
 
 test.register_coroutine_test(
@@ -242,7 +258,10 @@ test.register_coroutine_test(
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.active()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
     test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-  end
+  end,
+  {
+     min_api_version = 17
+  }
 )
 
 test.register_coroutine_test(
@@ -257,7 +276,10 @@ test.register_coroutine_test(
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(97)))
-    end
+    end,
+    {
+       min_api_version = 17
+    }
 )
 
 test.register_coroutine_test(
@@ -272,7 +294,10 @@ test.register_coroutine_test(
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-    end
+    end,
+    {
+       min_api_version = 17
+    }
 )
 
 test.register_coroutine_test(
@@ -287,31 +312,263 @@ test.register_coroutine_test(
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
       test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(60)))
-    end
+    end,
+    {
+       min_api_version = 17
+    }
 )
 
 test.register_coroutine_test(
-    "Report from cluster 0xFC03, command 0x05 should be handled as: threeAxis(1050, -3, 9)",
-    function()
-      test.socket.zigbee:__queue_receive({
-        mock_device.id,
-        build_three_axis_report_message(mock_device, "\x1A\x04\xFD\xFF\x09\x00")
-      })
-      test.socket.capability:__set_channel_ordering("relaxed")
-      test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({1050, -3, 9})) )
-    end
+  "Report from cluster 0xFC03, command 0x09 should be handled as: Temperature (-25.5 C)",
+  function()
+    test.socket.zigbee:__queue_receive({
+      mock_device.id,
+      build_multi_status_report_message(mock_device, "\x01\xFF\x00\x00")
+    })
+    test.socket.capability:__set_channel_ordering("relaxed")
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.temperatureMeasurement.temperature({ value = -25.5, unit = "C" })))
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(0)))
+  end,
+  {
+     min_api_version = 17
+  }
 )
 
 test.register_coroutine_test(
-    "Report from cluster 0xFC03, command 0x05 should be handled as: threeAxis(1123,-130,-24)",
+  "Report from cluster 0xFC03, command 0x09 should be handled as: Temperature (-6.0 C)",
+  function()
+    test.socket.zigbee:__queue_receive({
+      mock_device.id,
+      build_multi_status_report_message(mock_device, "\xC4\xFF\x00\x00")
+    })
+    test.socket.capability:__set_channel_ordering("relaxed")
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.temperatureMeasurement.temperature({ value = -6.0, unit = "C" })))
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(0)))
+  end,
+  {
+     min_api_version = 17
+  }
+)
+
+test.register_coroutine_test(
+  "Report from cluster 0xFC03, command 0x09 should be handled as: Temperature (-0.1 C)",
+  function()
+    test.socket.zigbee:__queue_receive({
+      mock_device.id,
+      build_multi_status_report_message(mock_device, "\xFF\xFF\x00\x00")
+    })
+    test.socket.capability:__set_channel_ordering("relaxed")
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.temperatureMeasurement.temperature({ value = -0.1, unit = "C" })))
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.accelerationSensor.acceleration.inactive()))
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.battery.battery(0)))
+  end,
+  {
+     min_api_version = 17
+  }
+)
+
+test.register_coroutine_test(
+    "Report from cluster 0xFC03, command 0x05 should be handled as: threeAxis(1050, 3, 9)",
     function()
       test.socket.zigbee:__queue_receive({
         mock_device.id,
-        build_three_axis_report_message(mock_device, "\x63\x04\x7E\xFF\xE8\xFF")
+        build_three_axis_report_message(mock_device, "\x1A\x04\x03\x00\x09\x00")
       })
       test.socket.capability:__set_channel_ordering("relaxed")
-      test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({1123, -130, -24})) )
-    end
+      test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({1050, 3, 9})) )
+    end,
+    {
+       min_api_version = 17
+    }
+)
+
+test.register_coroutine_test(
+    "Report from cluster 0xFC03, command 0x05 should be handled as: threeAxis(-1050, -3, -9)",
+    function()
+      test.socket.zigbee:__queue_receive({
+        mock_device.id,
+        build_three_axis_report_message(mock_device, "\xE6\xFB\xFD\xFF\xF7\xFF")
+      })
+      test.socket.capability:__set_channel_ordering("relaxed")
+      test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({-1050, -3, -9})) )
+    end,
+    {
+       min_api_version = 17
+    }
+)
+
+test.register_coroutine_test(
+    "Report from cluster 0xFC03, command 0x05 should be handled as: threeAxis(10, 1020, 7)",
+    function()
+      test.socket.zigbee:__queue_receive({
+        mock_device.id,
+        build_three_axis_report_message(mock_device, "\x0A\x00\xFC\x03\x07\x00")
+      })
+      test.socket.capability:__set_channel_ordering("relaxed")
+      test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({10, 1020, 7})) )
+    end,
+    {
+       min_api_version = 17
+    }
+)
+
+test.register_coroutine_test(
+    "Report from cluster 0xFC03, command 0x05 should be handled as: threeAxis(-10, -1020, -7)",
+    function()
+      test.socket.zigbee:__queue_receive({
+        mock_device.id,
+        build_three_axis_report_message(mock_device, "\xF6\xFF\x04\xFC\xF9\xFF")
+      })
+      test.socket.capability:__set_channel_ordering("relaxed")
+      test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({-10, -1020, -7})) )
+    end,
+    {
+       min_api_version = 17
+    }
+)
+
+test.register_coroutine_test(
+    "Report from cluster 0xFC03, command 0x05 should be handled as: threeAxis(116, 4, 1003)",
+    function()
+      test.socket.zigbee:__queue_receive({
+        mock_device.id,
+        build_three_axis_report_message(mock_device, "\x74\x00\x04\x00\xEB\x03")
+      })
+      test.socket.capability:__set_channel_ordering("relaxed")
+      test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({116, 4, 1003})) )
+    end,
+    {
+       min_api_version = 17
+    }
+)
+
+test.register_coroutine_test(
+    "Report from cluster 0xFC03, command 0x05 should be handled as: threeAxis(-116, -4, -1003)",
+    function()
+      test.socket.zigbee:__queue_receive({
+        mock_device.id,
+        build_three_axis_report_message(mock_device, "\x8C\xFF\xFC\xFF\x15\xFC")
+      })
+      test.socket.capability:__set_channel_ordering("relaxed")
+      test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({-116, -4, -1003})) )
+    end,
+    {
+       min_api_version = 17
+    }
+)
+
+test.register_coroutine_test(
+  "Correct contact events should be generated when device is mounted on garage door",
+  function()
+    test.socket.device_lifecycle():__queue_receive({mock_device.id, "init"})
+    test.socket.device_lifecycle():__queue_receive(mock_device:generate_info_changed(
+        {
+            preferences = {
+              ["certifiedpreferences.garageSensor"] = true
+            }
+        }
+    ))
+    test.wait_for_events()
+    test.socket.capability:__set_channel_ordering("relaxed")
+    test.socket.zigbee:__queue_receive({
+      mock_device.id,
+      build_three_axis_report_message(mock_device, "\xF6\xFF\x04\xFC\x9D\xFF")
+    })
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({-10, -1020, -99})) )
+    test.socket.capability:__expect_send( mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed()))
+
+    test.wait_for_events()
+    test.socket.zigbee:__queue_receive({
+      mock_device.id,
+      build_three_axis_report_message(mock_device, "\x8C\xFF\xFC\xFF\xC6\xFC")
+    })
+    test.socket.capability:__expect_send(mock_device:generate_test_message("main", capabilities.threeAxis.threeAxis({-116, -4, -826})) )
+    test.socket.capability:__expect_send( mock_device:generate_test_message("main", capabilities.contactSensor.contact.open()))
+  end,
+  {
+     min_api_version = 17
+  }
+)
+
+test.register_message_test(
+  "ZoneStatusChangeNotification should generate contact event when garageSensor not set: open",
+  {
+    {
+      channel = "zigbee",
+      direction = "receive",
+      message = { mock_device.id, IASZone.client.commands.ZoneStatusChangeNotification.build_test_rx(mock_device, 0x0001, 0x00) }
+    },
+    {
+      channel = "capability",
+      direction = "send",
+      message = mock_device:generate_test_message("main", capabilities.contactSensor.contact.open())
+    }
+  },
+  {
+     min_api_version = 17
+  }
+)
+
+test.register_message_test(
+  "ZoneStatusChangeNotification should generate contact event when garageSensor not set: closed",
+  {
+    {
+      channel = "zigbee",
+      direction = "receive",
+      message = { mock_device.id, IASZone.client.commands.ZoneStatusChangeNotification.build_test_rx(mock_device, 0x0000, 0x00) }
+    },
+    {
+      channel = "capability",
+      direction = "send",
+      message = mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed())
+    }
+  },
+  {
+     min_api_version = 17
+  }
+)
+
+test.register_message_test(
+  "ZoneStatus attr report should generate contact event when garageSensor not set: open",
+  {
+    {
+      channel = "zigbee",
+      direction = "receive",
+      message = { mock_device.id, IASZone.attributes.ZoneStatus:build_test_attr_report(mock_device, 0x0001) }
+    },
+    {
+      channel = "capability",
+      direction = "send",
+      message = mock_device:generate_test_message("main", capabilities.contactSensor.contact.open())
+    }
+  },
+  {
+     min_api_version = 17
+  }
+)
+
+test.register_message_test(
+  "ZoneStatus attr report should generate contact event when garageSensor not set: closed",
+  {
+    {
+      channel = "zigbee",
+      direction = "receive",
+      message = { mock_device.id, IASZone.attributes.ZoneStatus:build_test_attr_report(mock_device, 0x0000) }
+    },
+    {
+      channel = "capability",
+      direction = "send",
+      message = mock_device:generate_test_message("main", capabilities.contactSensor.contact.closed())
+    }
+  },
+  {
+     min_api_version = 17
+  }
 )
 
 test.run_registered_tests()

@@ -1,21 +1,12 @@
--- Copyright 2022 SmartThings
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---     http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Copyright 2022 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
+
 
 local clusters = require "st.zigbee.zcl.clusters"
 local Thermostat = clusters.Thermostat
 local FanControl = clusters.FanControl
 local capabilities = require "st.capabilities"
+local utils = require "st.utils"
 
 local ENDPOINT = 10
 
@@ -89,12 +80,12 @@ end
 
 local function set_cooling_setpoint(driver, device, command)
   device:emit_event(capabilities.thermostatCoolingSetpoint.coolingSetpoint({value = command.args.setpoint*1.0, unit = "C"}))
-  device:send_to_component(command.component, Thermostat.attributes.OccupiedCoolingSetpoint:write(device, command.args.setpoint*100))
+  device:send_to_component(command.component, Thermostat.attributes.OccupiedCoolingSetpoint:write(device, utils.round(command.args.setpoint*100)))
 end
 
 local function set_heating_setpoint(driver, device, command)
   device:emit_event(capabilities.thermostatHeatingSetpoint.heatingSetpoint({value = command.args.setpoint*1.0, unit = "C"}))
-  device:send_to_component(command.component, Thermostat.attributes.OccupiedHeatingSetpoint:write(device, command.args.setpoint*100))
+  device:send_to_component(command.component, Thermostat.attributes.OccupiedHeatingSetpoint:write(device, utils.round(command.args.setpoint*100)))
 end
 
 local leviton_thermostat = {
@@ -127,9 +118,7 @@ local leviton_thermostat = {
       }
     }
   },
-  can_handle = function(opts, driver, device, ...)
-    return device:get_manufacturer() == "HAI" and device:get_model() == "65A01-1"
-  end
+  can_handle = require("leviton.can_handle"),
 }
 
 return leviton_thermostat

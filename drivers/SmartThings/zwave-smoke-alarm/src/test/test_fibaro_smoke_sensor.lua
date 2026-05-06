@@ -1,16 +1,6 @@
--- Copyright 2022 SmartThings
---
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
---
---     http://www.apache.org/licenses/LICENSE-2.0
---
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Copyright 2022 SmartThings, Inc.
+-- Licensed under the Apache License, Version 2.0
+
 
 local test = require "integration_test"
 local capabilities = require "st.capabilities"
@@ -21,7 +11,6 @@ local t_utils = require "integration_test.utils"
 local Battery = (require "st.zwave.CommandClass.Battery")({ version=1 })
 local Configuration = (require "st.zwave.CommandClass.Configuration")({ version=1 })
 local SensorMultilevel = (require "st.zwave.CommandClass.SensorMultilevel")({ version=5 })
-local SensorBinary = (require "st.zwave.CommandClass.SensorBinary")({ version = 2 })
 local WakeUp = (require "st.zwave.CommandClass.WakeUp")({ version=1 })
 local Notification = (require "st.zwave.CommandClass.Notification")({ version=4 })
 
@@ -159,20 +148,10 @@ test.register_coroutine_test(
         Configuration:Set({parameter_number=32, size=2, configuration_value=4320})
       )
     )
-    test.socket.zwave:__expect_send(
-      zw_test_utils.zwave_test_build_send_command(
-        mock_device,
-        SensorBinary:Get({sensor_type = SensorBinary.sensor_type.FREEZE})
-      )
-    )
-    test.socket.zwave:__expect_send(
-      zw_test_utils.zwave_test_build_send_command(
-        mock_device,
-        SensorBinary:Get({sensor_type = SensorBinary.sensor_type.SMOKE})
-      )
-    )
-
-  end
+  end,
+  {
+     min_api_version = 17
+  }
 )
 
 test.register_coroutine_test(
@@ -205,7 +184,10 @@ test.register_coroutine_test(
         Battery:Get({})
       )
     )
-  end
+  end,
+  {
+     min_api_version = 17
+  }
 )
 
 test.register_coroutine_test(
@@ -225,7 +207,10 @@ test.register_coroutine_test(
     test.socket.capability:__expect_send(
       mock_device:generate_test_message("main", capabilities.temperatureAlarm.temperatureAlarm.cleared())
     )
-  end
+  end,
+  {
+     min_api_version = 17
+  }
 )
 
 test.run_registered_tests()
