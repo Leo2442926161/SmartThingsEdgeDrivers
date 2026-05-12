@@ -59,3 +59,8 @@ zigbeeManufacturer:
     manufacturer: MultIR
     model: MIR-SM200
     deviceProfileName: smoke-battery-tamper-no-fw-update
+  - id: "HEIMAN/HS1SA-E-PLUS"
+    deviceLabel: HEIMAN Smoke Detector
+    manufacturer: HEIMAN
+    model: HS1SA-E-PLUS
+    deviceProfileName: smoke-temp-battery-alarm-audio-selfcheck

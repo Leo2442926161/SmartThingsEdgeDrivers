@@ -1,0 +1,16 @@
+id: smokeLevel
+version: 1
+status: proposed
+name: Smoke Level
+ephemeral: false
+attributes:
+  smokeLevel:
+    schema:
+      type: object
+      properties:
+        value:
+          type: number
+      additionalProperties: false
+      required:
+        - value
+commands: {}

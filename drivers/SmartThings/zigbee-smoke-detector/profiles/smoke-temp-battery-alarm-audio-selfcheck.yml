@@ -1,0 +1,34 @@
+name: smoke-temp-battery-alarm-audio-selfcheck
+components:
+- id: main
+  capabilities:
+  - id: smokeDetector
+    version: 1
+  - id: temperatureMeasurement
+    version: 1
+  - id: battery
+    version: 1
+  - id: firmwareUpdate
+    version: 1
+  - id: refresh
+    version: 1
+  - id: audioMute
+    version: 1
+  - id: stse.selfCheck
+    version: 1
+  - id: alarm
+    version: 1
+    config:
+      values:
+        - key: "alarm.value"
+          enabledValues:
+            - off
+            - siren
+        - key: "{{enumCommands}}"
+          enabledValues:
+            - off
+            - siren
+  - id: smokeLevel
+    version: 1
+  categories:
+  - name: SmokeDetector
